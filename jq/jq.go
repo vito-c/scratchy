@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"io"
 	"os/exec"
 	"strings"
@@ -61,6 +62,8 @@ func (j *JQ) Eval(ctx context.Context, w io.Writer, e io.Writer) error {
 	err := cmd.Run()
 	if err != nil {
 		ctxErr := ctx.Err()
+		
+		log.Println("error")
 		if ctxErr == context.DeadlineExceeded {
 			return ExecTimeoutError
 		}

@@ -173,13 +173,16 @@ func setup(n *nvim.Nvim, args []string) (string, error) { // Declare first arg a
 	log.Println("dataWin ", jqWin)
 
 	v.SetCurrentBuffer(jqbuff.Buffer)
-	v.SetCurrentLine([]byte("map(.url)"))
+	// v.SetCurrentLine([]byte("map(.url)"))
+	v.SetCurrentLine([]byte("."))
 	log.Printf("jqbuff %v\n", jqbuff)
 	log.Printf("databuff %v\n", databuff)
 	log.Printf("outbuff %v\n", outbuff)
-	v.SetBufferAuCmd("TextChangedI", jqbuff.Buffer, "call ScratchyRun()")
-	v.SetBufferAuCmd("TextChanged", jqbuff.Buffer, "call ScratchyRun()")
-	return scratchyRun(n, false, true, args)
+	// v.SetBufferAuCmd("TextChangedI", jqbuff.Buffer, "call ScratchyRun()")
+	// v.SetBufferAuCmd("TextChanged", jqbuff.Buffer, "call ScratchyRun()")
+	log.Println("finished setup")
+	// return scratchyRun(n, false, true, args)
+	return "setup", nil
 }
 
 func (r *SBuffer) getString() string {
@@ -193,6 +196,10 @@ func (r *SBuffer) getString() string {
 }
 
 var jqr *jq.JQ
+
+func scratchIt(n *nvim.Nvim, args []string) (string, error) { // Declare first arg as *nvim.Nvim to get current client
+	return scratchyRun(n, false, true, args)
+}
 
 func scratchyRun(
 	n *nvim.Nvim,
@@ -232,9 +239,11 @@ func scratchyRun(
 		}
 		log.Println(err.Error())
 	}
+	log.Println("wrote buffer")
 	v.Command("setlocal bt=nofile bh=wipe noma nomod nonu nobl nowrap ro nornu")
 	v.SetCurrentWindow(jqWin)
 
+	log.Println("finished run")
 	return "finished", nil
 }
 
@@ -249,6 +258,10 @@ func (v *Svim) RemoveBufferAuCmds() {
 	return
 }
 
+// func (v *Svim) SetBufferAuGrpCmds(group string, aucmds map[string]string, buffer nvim.Buffer) {
+// 	str := fmt.Sprintf("au %s <buffer=%d> %s", aucmd, buffer, cmd)
+// 	log.Println("cmd: ", str)
+// }
 func (v *Svim) SetBufferAuCmd(aucmd string, buffer nvim.Buffer, cmd string) {
 	str := fmt.Sprintf("au %s <buffer=%d> %s", aucmd, buffer, cmd)
 	log.Println("cmd: ", str)
@@ -298,20 +311,28 @@ func (b *SBuffer) Read(p []byte) (n int, err error) {
 	return 0, nil
 }
 
+var counter = 0
 func (b *SBuffer) Write(p []byte) (n int, err error) {
-	log.Println("Do Writer: ", string(p))
 
 	if len(p) == 0 {
 		return 0, nil
 	}
+	lp := len(p)
+
+	lines := bytes.Split(p, []byte{'\n'})
+	log.Println("lines: ", len(lines))
+	log.Println("Start: ", string(lines[0]))
+	log.Println("End: ", string(lines[len(lines)-1]))
+	log.Println("counter: ", counter)
 
 	err = b.nvim.SetBufferLines(
 		b.Buffer,
-		0, -1, true, bytes.Split(p, []byte{'\n'}))
+		counter, -1, true, lines)
 	if err != nil {
 		log.Println("write error: ", err.Error())
 	}
-	return len(p), err
+	counter = len(lines)-1
+	return lp, err
 }
 
 // func (b *SBuffer) Write(p []byte) (n int, err error) {
@@ -319,7 +340,7 @@ func (b *SBuffer) Write(p []byte) (n int, err error) {
 // }
 
 func main() {
-	logPath := "/Users/vitocutten/.local/share/nvim/scratchy.log"
+	logPath := "/Users/vito.cutten/.local/share/nvim/scratchy.log"
 	if os.ExpandEnv("${NVIM_SCRATCHY_LOG_FILE}") != "" {
 		logPath = os.ExpandEnv("${NVIM_SCRATCHY_LOG_FILE}")
 	}
@@ -332,8 +353,8 @@ func main() {
 	defer f.Close()
 	log.SetOutput(f)
 	plugin.Main(func(p *plugin.Plugin) error {
-		p.HandleFunction(&plugin.FunctionOptions{Name: "MyTest"}, setup)
-		p.HandleFunction(&plugin.FunctionOptions{Name: "ScratchyRun"}, scratchyRun)
+		p.HandleFunction(&plugin.FunctionOptions{Name: "ScratchySetup"}, setup)
+		p.HandleFunction(&plugin.FunctionOptions{Name: "ScratchyRun"}, scratchIt)
 		return nil
 	})
 }
