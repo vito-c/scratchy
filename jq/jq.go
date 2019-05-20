@@ -46,7 +46,11 @@ func (j *JQ) Opts() []string {
 	return opts
 }
 
-func (j *JQ) Eval(ctx context.Context, w io.Writer, e io.Writer) error {
+func (j *JQ) Eval(
+	ctx context.Context,
+	w io.Writer,
+	e io.Writer,
+) error {
 	if err := j.Validate(); err != nil {
 		return err
 	}
@@ -70,7 +74,7 @@ func (j *JQ) Eval(ctx context.Context, w io.Writer, e io.Writer) error {
 		if ctxErr == context.Canceled {
 			return ExecCancelledError
 		}
-	}
+	} 
 
 	return err
 }

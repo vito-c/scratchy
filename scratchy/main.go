@@ -178,8 +178,8 @@ func setup(n *nvim.Nvim, args []string) (string, error) { // Declare first arg a
 	log.Printf("jqbuff %v\n", jqbuff)
 	log.Printf("databuff %v\n", databuff)
 	log.Printf("outbuff %v\n", outbuff)
-	// v.SetBufferAuCmd("TextChangedI", jqbuff.Buffer, "call ScratchyRun()")
-	// v.SetBufferAuCmd("TextChanged", jqbuff.Buffer, "call ScratchyRun()")
+	v.SetBufferAuCmd("TextChangedI", jqbuff.Buffer, "call ScratchyRun()")
+	v.SetBufferAuCmd("TextChanged", jqbuff.Buffer, "call ScratchyRun()")
 	log.Println("finished setup")
 	// return scratchyRun(n, false, true, args)
 	return "setup", nil
@@ -239,7 +239,9 @@ func scratchyRun(
 		}
 		log.Println(err.Error())
 	}
+	counter = 0
 	log.Println("wrote buffer")
+	v.Command("%!jq '.'")
 	v.Command("setlocal bt=nofile bh=wipe noma nomod nonu nobl nowrap ro nornu")
 	v.SetCurrentWindow(jqWin)
 
@@ -311,7 +313,17 @@ func (b *SBuffer) Read(p []byte) (n int, err error) {
 	return 0, nil
 }
 
+func formatJson(
+	n *nvim.Nvim,
+) {
+	str := "%!jq '.'"
+	if err := n.Command(str); err != nil {
+		log.Fatalln(err)
+	}
+}
+
 var counter = 0
+
 func (b *SBuffer) Write(p []byte) (n int, err error) {
 
 	if len(p) == 0 {
@@ -320,6 +332,7 @@ func (b *SBuffer) Write(p []byte) (n int, err error) {
 	lp := len(p)
 
 	lines := bytes.Split(p, []byte{'\n'})
+	lines = lines[:len(lines)-1]
 	log.Println("lines: ", len(lines))
 	log.Println("Start: ", string(lines[0]))
 	log.Println("End: ", string(lines[len(lines)-1]))
@@ -328,10 +341,13 @@ func (b *SBuffer) Write(p []byte) (n int, err error) {
 	err = b.nvim.SetBufferLines(
 		b.Buffer,
 		counter, -1, true, lines)
+	// TODO: For some reason there is loss of whitespace between
+	// goroutines writes which forces me to have to reformat the json after
+	// all of the writes are done.
 	if err != nil {
 		log.Println("write error: ", err.Error())
 	}
-	counter = len(lines)-1
+	counter = len(lines)
 	return lp, err
 }
 
@@ -355,6 +371,7 @@ func main() {
 	plugin.Main(func(p *plugin.Plugin) error {
 		p.HandleFunction(&plugin.FunctionOptions{Name: "ScratchySetup"}, setup)
 		p.HandleFunction(&plugin.FunctionOptions{Name: "ScratchyRun"}, scratchIt)
+		p.HandleFunction(&plugin.FunctionOptions{Name: "ScratchyFormat"}, formatJson)
 		return nil
 	})
 }
