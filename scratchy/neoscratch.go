@@ -196,6 +196,7 @@ func (r *SBuffer) getString() string {
 }
 
 var jqr *jq.JQ
+var startWrite bool
 
 func scratchIt(n *nvim.Nvim, args []string) (string, error) { // Declare first arg as *nvim.Nvim to get current client
 	return scratchyRun(n, false, true, args)
@@ -228,18 +229,19 @@ func scratchyRun(
 		log.Println("ERR: ", err.Error())
 		return err.Error(), nil
 	}
-	log.Println("-------------------")
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	log.Println(jqr.String())
+	startWrite = true
 	if err := jqr.Eval(ctx, &outbuff, ioutil.Discard); err != nil {
 		if showError {
 			v.Command("echom \"" + err.Error() + "\"")
 		}
 		log.Println(err.Error())
 	}
-	counter = 0
+	log.Println("-------------------")
+
 	log.Println("wrote buffer")
 	v.Command("%!jq '.'")
 	v.Command("setlocal bt=nofile bh=wipe noma nomod nonu nobl nowrap ro nornu")
@@ -296,7 +298,9 @@ func (b *SBuffer) LoadData() (err error) {
 	return err
 }
 
+// unused and probably not good??
 func (b *SBuffer) Read(p []byte) (n int, err error) {
+	log.Println("READING")
 	if b.eof() != nil {
 		return 0, io.EOF
 	}
@@ -322,32 +326,55 @@ func formatJson(
 	}
 }
 
-var counter = 0
+var temp []byte
 
 func (b *SBuffer) Write(p []byte) (n int, err error) {
 
+	log.Println("WRITING")
 	if len(p) == 0 {
 		return 0, nil
 	}
-	lp := len(p)
 
+	lp := 0
+	counter := 0
+	err = nil
 	lines := bytes.Split(p, []byte{'\n'})
-	lines = lines[:len(lines)-1]
-	log.Println("lines: ", len(lines))
-	log.Println("Start: ", string(lines[0]))
-	log.Println("End: ", string(lines[len(lines)-1]))
-	log.Println("counter: ", counter)
+	if startWrite {
+		// when first write we want the counter to be 0
+		// we also want a clean temp array
+		temp = make([]byte, 0)
+		startWrite = false
+	} else {
+		// if there is data in the temp array from a previous run
+		// we want append the two texts together and overwrite
+		// the last line
+		counter, err = b.nvim.BufferLineCount(b.Buffer)
+		if len(temp) > 0 {
+			counter -= 1
+			lines[0] = append(temp[:], lines[0]...)
+		}
+		if err != nil {
+			log.Println(err.Error())
+			panic(err)
+		}
+	}
+	err = b.nvim.SetBufferLines(b.Buffer, counter, -1, true, lines)
+	if err != nil {
+		log.Println(err.Error())
+		panic(err)
+	}
 
-	err = b.nvim.SetBufferLines(
-		b.Buffer,
-		counter, -1, true, lines)
-	// TODO: For some reason there is loss of whitespace between
-	// goroutines writes which forces me to have to reformat the json after
-	// all of the writes are done.
+	// Update the temp array
+	if p[len(p)-1] != '\n' {
+		temp = lines[len(lines)-1]
+	} else {
+		temp = make([]byte, 0)
+	}
+
+	lp = len(p)
 	if err != nil {
 		log.Println("write error: ", err.Error())
 	}
-	counter = len(lines)
 	return lp, err
 }
 

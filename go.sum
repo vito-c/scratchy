@@ -1,3 +1,7 @@
+github.com/jroimartin/gocui v0.4.0 h1:52jnalstgmc25FmtGcWqa0tcbMEWS6RpFLsOIO+I+E8=
+github.com/jroimartin/gocui v0.4.0/go.mod h1:7i7bbj99OgFHzo7kB2zPb8pXLqMBSQegY7azfqXMkyY=
+github.com/mattn/go-runewidth v0.0.4 h1:2BvfKmzob6Bmd4YsL0zygOqfdFnK7GR4QL06Do4/p7Y=
+github.com/mattn/go-runewidth v0.0.4/go.mod h1:LwmH8dsx7+W8Uxz3IHJYH5QSwggIsqBzpuz5H//U1FU=
 github.com/neovim/go-client v0.0.0-20180317060730-f5db3a969bfe h1:k0mHzS5Q+otiMflk/vwA3TbR9atlEqRupKJrh514NoI=
 github.com/neovim/go-client v0.0.0-20180317060730-f5db3a969bfe/go.mod h1:cHx8fl6EhCgSA/pyKeVtyl3o6UzgE31ADtc+bx3JpKg=
 github.com/neovim/go-client v0.0.0-20190325025836-79202f9a38f2 h1:KWaHnYXtqZJ9HRMjRdrumAgky2pedfSobjpgmnE+V2E=
@@ -6,3 +10,5 @@ github.com/neovim/go-client v0.0.0-20190422125251-fba3ac82e748 h1:PKV++czUfsQmT9
 github.com/neovim/go-client v0.0.0-20190422125251-fba3ac82e748/go.mod h1:cHx8fl6EhCgSA/pyKeVtyl3o6UzgE31ADtc+bx3JpKg=
 github.com/neovim/go-client v0.0.0-20190424085530-ada0455437a3 h1:L7zPFGP1rRrthVkfE1eLxmxSN+NiUc9if7i8AvLsphM=
 github.com/neovim/go-client v0.0.0-20190424085530-ada0455437a3/go.mod h1:cHx8fl6EhCgSA/pyKeVtyl3o6UzgE31ADtc+bx3JpKg=
+github.com/nsf/termbox-go v0.0.0-20190624072549-eeb6cd0a1762 h1:44Lv0bNi88GweB54TCjB/lEJgp+2Ze5WFpwNu0nh0ag=
+github.com/nsf/termbox-go v0.0.0-20190624072549-eeb6cd0a1762/go.mod h1:IuKpRQcYE1Tfu+oAQqaLisqDeXgjyyltCfsaoYN18NQ=
