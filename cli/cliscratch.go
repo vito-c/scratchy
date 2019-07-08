@@ -15,7 +15,7 @@ import (
 	"github.com/alecthomas/chroma/styles"
 	"github.com/jroimartin/gocui"
 	"github.com/vito-c/scratchy/scratchy/gui"
-	"github.com/vito-c/scratchy/scratchy/scratch"
+	"github.com/vito-c/scratchy/widgets"
 )
 
 type SyntaxTextBox struct {
@@ -61,7 +61,7 @@ func (b *SyntaxTextBox) Layout(g *gocui.Gui) error {
 		// if b.editable == false {
 		// v.Editable = false
 
-		style := scratch.Scratch
+		style := widgets.Scratch
 		if b.name == "jq" {
 			log.Println("redraw jq")
 		}
@@ -93,7 +93,7 @@ func (b *SyntaxTextBox) Layout(g *gocui.Gui) error {
 				Input:  jv,
 				Output: ov,
 			}
-			lexer = scratch.JqLex
+			lexer = widgets.JqLex
 		} else {
 			lexer = lexers.Get(b.syntax)
 			if lexer == nil {

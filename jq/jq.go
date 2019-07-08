@@ -54,15 +54,6 @@ func (j *JQ) EvalStream(
 	w io.Writer,
 	e io.Writer,
 ) error {
-	// if err := j.Validate(); err != nil {
-	// 	return err
-	// }
-	//
-	// var outbuf, errbuf bytes.Buffer
-	// buf := new(bytes.Buffer)
-	// buf.ReadFrom(r)
-	// s := buf.String()
-	// log.Println("json: ", len(s))
 
 	opts := j.Opts()
 	opts = append(opts, strings.TrimSpace(j.Q))
@@ -72,9 +63,6 @@ func (j *JQ) EvalStream(
 	cmd.Env = make([]string, 0)
 	cmd.Stdout = w
 	cmd.Stderr = e
-	// cmd.Stdout = &outbuf
-	// cmd.Stderr = &errbuf
-	// fmt.Fprint(w, "hello")
 
 	err := cmd.Run()
 	if err != nil {
@@ -88,11 +76,6 @@ func (j *JQ) EvalStream(
 		}
 	}
 
-	// stdout := outbuf.String()
-	// stderr := errbuf.String()
-    //
-	// log.Println(stdout)
-	// log.Println(stderr)
 	return err
 }
 

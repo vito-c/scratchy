@@ -4,8 +4,8 @@ import (
 	"context"
 	"io/ioutil"
 	"log"
-	"time"
 	"strings"
+	"time"
 
 	"github.com/alecthomas/chroma"
 	"github.com/alecthomas/chroma/formatters"
@@ -13,7 +13,7 @@ import (
 	"github.com/alecthomas/chroma/styles"
 	"github.com/jroimartin/gocui"
 	"github.com/vito-c/scratchy/jq"
-	"github.com/vito-c/scratchy/scratchy/scratch"
+	"github.com/vito-c/scratchy/widgets"
 )
 
 var jqr *jq.JQ
@@ -28,7 +28,7 @@ type SyntaxEditor struct {
 func (ve *SyntaxEditor) updateColors(qv *gocui.View) {
 	jq.Init()
 	jq.Path = "/usr/local/bin/jq"
-	style := scratch.Scratch
+	style := widgets.Scratch
 	if style == nil {
 		log.Println("style not found falling back to default")
 		style = styles.Fallback
@@ -41,7 +41,7 @@ func (ve *SyntaxEditor) updateColors(qv *gocui.View) {
 	}
 	var lexer chroma.Lexer
 	if ve.Syntax == "jq" {
-		lexer = scratch.JqLex
+		lexer = widgets.JqLex
 	} else {
 		lexer = lexers.Get(ve.Syntax)
 		if lexer == nil {

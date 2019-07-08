@@ -1,4 +1,4 @@
-package scratch
+package widgets
 
 import (
 	. "github.com/alecthomas/chroma" // nolint
