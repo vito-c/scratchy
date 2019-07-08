@@ -1,14 +1,16 @@
 package jq
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"io"
+	"log"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 type ValidationError struct {
@@ -46,6 +48,62 @@ func (j *JQ) Opts() []string {
 	return opts
 }
 
+func (j *JQ) EvalStream(
+	ctx context.Context,
+	r io.Reader,
+	w io.Writer,
+	e io.Writer,
+) error {
+	// if err := j.Validate(); err != nil {
+	// 	return err
+	// }
+	//
+	// var outbuf, errbuf bytes.Buffer
+	// buf := new(bytes.Buffer)
+	// buf.ReadFrom(r)
+	// s := buf.String()
+	// log.Println("json: ", len(s))
+
+	opts := j.Opts()
+	opts = append(opts, strings.TrimSpace(j.Q))
+	log.Println(opts)
+	cmd := exec.CommandContext(ctx, Path, opts...)
+	cmd.Stdin = r
+	cmd.Env = make([]string, 0)
+	cmd.Stdout = w
+	cmd.Stderr = e
+	// cmd.Stdout = &outbuf
+	// cmd.Stderr = &errbuf
+	// fmt.Fprint(w, "hello")
+
+	err := cmd.Run()
+	if err != nil {
+		ctxErr := ctx.Err()
+
+		if ctxErr == context.DeadlineExceeded {
+			return ExecTimeoutError
+		}
+		if ctxErr == context.Canceled {
+			return ExecCancelledError
+		}
+	}
+
+	// stdout := outbuf.String()
+	// stderr := errbuf.String()
+    //
+	// log.Println(stdout)
+	// log.Println(stderr)
+	return err
+}
+
+type logWriter struct{ *log.Logger }
+
+func (w logWriter) Write(b []byte) (int, error) {
+	w.Printf("writing: \n")
+	w.Printf("%s", b)
+	return len(b), nil
+}
+
 func (j *JQ) Eval(
 	ctx context.Context,
 	w io.Writer,
@@ -66,16 +124,36 @@ func (j *JQ) Eval(
 	err := cmd.Run()
 	if err != nil {
 		ctxErr := ctx.Err()
-		
-		log.Println("error")
+
 		if ctxErr == context.DeadlineExceeded {
 			return ExecTimeoutError
 		}
 		if ctxErr == context.Canceled {
 			return ExecCancelledError
 		}
-	} 
+	}
 
+	return err
+}
+
+func (j *JQ) ValidateFilter() error {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	var b bytes.Buffer
+	e := bufio.NewWriter(&b)
+	cmd := exec.CommandContext(ctx, Path, j.Q)
+	cmd.Stdin = bytes.NewBufferString("")
+	cmd.Env = make([]string, 0)
+
+	cmd.Stderr = e
+
+	err := cmd.Run()
+	if err != nil {
+		log.Println(err.Error())
+		e.Flush()
+		log.Println(b.String())
+	}
 	return err
 }
 
